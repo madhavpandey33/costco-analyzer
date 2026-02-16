@@ -8,30 +8,30 @@ const CostcoCharts = (() => {
   const chartInstances = {};
 
   const COLORS = {
-    primary: 'rgba(59, 130, 246, 0.8)',
-    primaryBorder: 'rgba(59, 130, 246, 1)',
-    danger: 'rgba(239, 68, 68, 0.8)',
+    primary: 'rgba(79, 70, 229, 0.8)',
+    primaryBorder: 'rgba(79, 70, 229, 1)',
+    danger: 'rgba(239, 68, 68, 0.75)',
     dangerBorder: 'rgba(239, 68, 68, 1)',
-    success: 'rgba(34, 197, 94, 0.8)',
-    successBorder: 'rgba(34, 197, 94, 1)',
-    warning: 'rgba(234, 179, 8, 0.8)',
-    warningBorder: 'rgba(234, 179, 8, 1)',
-    purple: 'rgba(168, 85, 247, 0.8)',
-    purpleBorder: 'rgba(168, 85, 247, 1)',
+    success: 'rgba(16, 185, 129, 0.8)',
+    successBorder: 'rgba(16, 185, 129, 1)',
+    warning: 'rgba(245, 158, 11, 0.8)',
+    warningBorder: 'rgba(245, 158, 11, 1)',
+    purple: 'rgba(139, 92, 246, 0.8)',
+    purpleBorder: 'rgba(139, 92, 246, 1)',
     teal: 'rgba(20, 184, 166, 0.8)',
     tealBorder: 'rgba(20, 184, 166, 1)'
   };
 
   const PALETTE = [
-    'rgba(59, 130, 246, 0.7)',
+    'rgba(79, 70, 229, 0.7)',
+    'rgba(16, 185, 129, 0.7)',
+    'rgba(245, 158, 11, 0.7)',
     'rgba(239, 68, 68, 0.7)',
-    'rgba(34, 197, 94, 0.7)',
-    'rgba(234, 179, 8, 0.7)',
-    'rgba(168, 85, 247, 0.7)',
+    'rgba(139, 92, 246, 0.7)',
     'rgba(20, 184, 166, 0.7)',
     'rgba(249, 115, 22, 0.7)',
     'rgba(236, 72, 153, 0.7)',
-    'rgba(99, 102, 241, 0.7)',
+    'rgba(59, 130, 246, 0.7)',
     'rgba(14, 165, 233, 0.7)',
     'rgba(132, 204, 22, 0.7)',
     'rgba(244, 63, 94, 0.7)'
@@ -39,12 +39,12 @@ const CostcoCharts = (() => {
 
   function getTextColor() {
     const isDark = document.body.getAttribute('data-theme') === 'dark';
-    return isDark ? 'rgba(228, 228, 231, 0.9)' : 'rgba(39, 39, 42, 0.9)';
+    return isDark ? 'rgba(241, 245, 249, 0.9)' : 'rgba(15, 23, 42, 0.85)';
   }
 
   function getGridColor() {
     const isDark = document.body.getAttribute('data-theme') === 'dark';
-    return isDark ? 'rgba(63, 63, 70, 0.5)' : 'rgba(228, 228, 231, 0.5)';
+    return isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(226, 232, 240, 0.6)';
   }
 
   function getOrCreate(id, config) {
@@ -53,6 +53,10 @@ const CostcoCharts = (() => {
     }
     const ctx = document.getElementById(id);
     if (!ctx) return null;
+
+    Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    Chart.defaults.font.size = 12;
+
     chartInstances[id] = new Chart(ctx, config);
     return chartInstances[id];
   }
