@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Costco Spending Analyzer</title>
+
+  <!-- Oat UI -->
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat@0.4.0/oat.min.css">
+  <script src="https://unpkg.com/@knadh/oat@0.4.0/oat.min.js" defer></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+
+  <!-- SheetJS (xlsx) for CSV/Excel parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <nav>
+      <strong class="brand">Costco Spending Analyzer</strong>
+      <div class="nav-right">
+        <label class="theme-toggle">
+          <input type="checkbox" role="switch" id="theme-toggle" aria-label="Toggle dark mode">
+          Dark mode
+        </label>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- Upload Section -->
+    <section id="upload-section">
+      <div class="upload-hero">
+        <h1>Analyze Your Costco Spending</h1>
+        <p>Upload your Costco receipt export (CSV or Excel) and get instant insights into your spending patterns, returns, item frequency, and savings opportunities.</p>
+
+        <div class="upload-area" id="upload-area">
+          <div class="upload-icon">&#128202;</div>
+          <p><strong>Drag &amp; drop your file here</strong></p>
+          <p>or</p>
+          <label>
+            <input type="file" id="file-input" accept=".csv,.xlsx,.xls" hidden>
+            <span role="button" data-variant="primary">Choose File</span>
+          </label>
+          <p class="upload-hint">Accepts .csv, .xlsx, .xls files</p>
+        </div>
+
+        <div role="alert" data-variant="success" class="privacy-notice">
+          <strong>Your data stays private.</strong> All processing happens entirely in your browser. No data is ever sent to any server.
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard Section (hidden until file is uploaded) -->
+    <section id="dashboard-section" hidden>
+
+      <!-- File info bar -->
+      <div class="file-info-bar">
+        <span id="file-info-text"></span>
+        <button id="btn-reset" class="small outline">Upload New File</button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="card-grid" id="summary-cards">
+        <div class="card">
+          <header>Total Spent</header>
+          <div class="card-value" id="stat-total-spent">--</div>
+          <footer>Net of returns</footer>
+        </div>
+        <div class="card">
+          <header>Total Trips</header>
+          <div class="card-value" id="stat-total-trips">--</div>
+          <footer>Unique store visits</footer>
+        </div>
+        <div class="card">
+          <header>Items Purchased</header>
+          <div class="card-value" id="stat-items-purchased">--</div>
+          <footer>Total line items</footer>
+        </div>
+        <div class="card">
+          <header>Items Returned</header>
+          <div class="card-value" id="stat-items-returned">--</div>
+          <footer>Returned line items</footer>
+        </div>
+        <div class="card">
+          <header>Total Savings</header>
+          <div class="card-value" id="stat-total-savings">--</div>
+          <footer>Discounts + coupons</footer>
+        </div>
+        <div class="card">
+          <header>Avg Per Trip</header>
+          <div class="card-value" id="stat-avg-per-trip">--</div>
+          <footer>Average spend per visit</footer>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="dashboard-tabs" id="dashboard-tabs">
+        <nav class="tab-nav" id="tab-nav">
+          <button class="tab-btn active" data-tab="tab-spending">Spending Overview</button>
+          <button class="tab-btn" data-tab="tab-items">Item Analysis</button>
+          <button class="tab-btn" data-tab="tab-returns">Returns</button>
+          <button class="tab-btn" data-tab="tab-savings">Savings &amp; Optimization</button>
+        </nav>
+
+        <!-- Tab 1: Spending Overview -->
+        <div class="tab-panel active" id="tab-spending">
+          <div class="chart-row">
+            <div class="chart-container">
+              <h3>Monthly Spending</h3>
+              <canvas id="chart-monthly-spending"></canvas>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="chart-container half">
+              <h3>Spending by Department</h3>
+              <canvas id="chart-department"></canvas>
+            </div>
+            <div class="chart-container half">
+              <h3>Basket Size Over Time</h3>
+              <canvas id="chart-basket-size"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Item Analysis -->
+        <div class="tab-panel" id="tab-items">
+          <div class="chart-row">
+            <div class="chart-container half">
+              <h3>Top 20 Most Purchased Items</h3>
+              <canvas id="chart-top-frequency"></canvas>
+            </div>
+            <div class="chart-container half">
+              <h3>Top 20 Items by Spend</h3>
+              <canvas id="chart-top-spend"></canvas>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="table-container">
+              <h3>Purchase Frequency Table</h3>
+              <div class="table-scroll" id="table-frequency"></div>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="table-container">
+              <h3>Price Changes Detected</h3>
+              <div class="table-scroll" id="table-price-changes"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Returns -->
+        <div class="tab-panel" id="tab-returns">
+          <div class="return-summary-cards" id="return-summary-cards">
+            <div class="card">
+              <header>Total Refund</header>
+              <div class="card-value" id="stat-total-refund">--</div>
+            </div>
+            <div class="card">
+              <header>Return Rate</header>
+              <div class="card-value" id="stat-return-rate">--</div>
+              <footer>Returned / Total items</footer>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="table-container">
+              <h3>Returned Items</h3>
+              <div class="table-scroll" id="table-returns"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Savings & Optimization -->
+        <div class="tab-panel" id="tab-savings">
+          <div class="chart-row">
+            <div class="chart-container half">
+              <h3>Savings Breakdown</h3>
+              <canvas id="chart-savings-breakdown"></canvas>
+            </div>
+            <div class="chart-container half">
+              <h3>Monthly Savings Trend</h3>
+              <canvas id="chart-monthly-savings"></canvas>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="table-container">
+              <h3>Highest Discount Items</h3>
+              <div class="table-scroll" id="table-top-discounts"></div>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="insights-container">
+              <h3>Spending Optimization Insights</h3>
+              <div id="insights-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Costco Spending Analyzer &mdash; Your data never leaves your browser.</p>
+  </footer>
+
+  <!-- App scripts -->
+  <script src="js/parser.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

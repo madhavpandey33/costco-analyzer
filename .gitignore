@@ -1,0 +1,27 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sample data (don't commit personal receipt data)
+*.csv
+*.xlsx
+*.xls
+
+# Test artifacts
+node_modules/
+package.json
+package-lock.json
+playwright-browsers/
+test-screenshots/
+test-e2e.js
+
+# Dependencies and Playwright
+node_modules/
+playwright-browsers/
