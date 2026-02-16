@@ -386,6 +386,131 @@ header nav {
   margin-bottom: 0;
 }
 
+/* ---- Potential Returns ---- */
+
+.potential-returns-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--card-gap);
+  margin-bottom: var(--section-gap);
+}
+
+.potential-returns-summary .card {
+  text-align: center;
+  padding: 1rem;
+}
+
+.potential-returns-summary .card header {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  border: none;
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
+
+.potential-returns-summary .card footer {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-top: 0.25rem;
+  border: none;
+  padding: 0;
+}
+
+.urgent-value {
+  color: #ef4444;
+}
+
+.urgent-section {
+  border-color: #fca5a5 !important;
+}
+
+.urgent-section h3 {
+  color: #ef4444;
+}
+
+.expired-section {
+  opacity: 0.7;
+}
+
+.section-hint {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: -0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.category-total {
+  font-size: 0.8rem;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 0.5rem;
+}
+
+/* Status badges */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-urgent {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.badge-limited {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fcd34d;
+}
+
+.badge-anytime {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #86efac;
+}
+
+.badge-expired {
+  background: #f4f4f5;
+  color: #71717a;
+  border: 1px solid #d4d4d8;
+  text-decoration: line-through;
+}
+
+[data-theme="dark"] .badge-urgent {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .badge-limited {
+  background: rgba(234, 179, 8, 0.15);
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+[data-theme="dark"] .badge-anytime {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+[data-theme="dark"] .badge-expired {
+  background: rgba(113, 113, 122, 0.15);
+  border-color: rgba(113, 113, 122, 0.4);
+}
+
+.return-row-urgent {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.return-row-expired td {
+  opacity: 0.5;
+}
+
 /* ---- Footer ---- */
 
 .app-footer {

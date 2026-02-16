@@ -121,6 +121,7 @@ const CostcoApp = (() => {
       renderReturnsTab(currentMetrics);
       renderTopDiscountsTable(currentMetrics.topDiscounts);
       renderInsights(currentMetrics.insights);
+      renderPotentialReturns(currentMetrics.potentialReturns);
 
       showLoading(false);
     } catch (err) {
@@ -326,6 +327,108 @@ const CostcoApp = (() => {
         </div>
       `;
     }).join('');
+  }
+
+  /* ---- Potential Returns ---- */
+
+  function renderPotentialReturns(data) {
+    // Summary cards
+    document.getElementById('stat-potential-refund').textContent =
+      formatDollar(data.totalPotentialRefund);
+    document.getElementById('stat-returnable-items').textContent =
+      data.totalReturnableItems;
+    document.getElementById('stat-urgent-items').textContent =
+      data.urgent.length;
+
+    // Urgent section (90-day window closing)
+    const urgentSection = document.getElementById('potential-returns-urgent');
+    if (data.urgent.length > 0) {
+      urgentSection.hidden = false;
+      document.getElementById('table-urgent-returns').innerHTML =
+        buildReturnableTable(data.urgent, true);
+    }
+
+    // Category sections
+    const catContainer = document.getElementById('potential-returns-categories');
+    const catHtml = Object.entries(data.categories)
+      .sort((a, b) => b[1].totalRefund - a[1].totalRefund)
+      .map(([category, catData]) => {
+        const items = catData.items.filter(i => i.status !== 'expired');
+        if (items.length === 0) return '';
+        return `
+          <div class="chart-row">
+            <div class="table-container">
+              <h3>${escHtml(category)} <span class="category-total">${formatDollar(catData.totalRefund)} potential refund</span></h3>
+              <div class="table-scroll">
+                ${buildReturnableTable(items, false)}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    catContainer.innerHTML = catHtml;
+
+    // Expired section
+    const expiredSection = document.getElementById('potential-returns-expired');
+    if (data.expired.length > 0) {
+      expiredSection.hidden = false;
+      document.getElementById('table-expired-returns').innerHTML =
+        buildReturnableTable(data.expired, true);
+    }
+  }
+
+  function buildReturnableTable(items, showDept) {
+    const rows = items.map(item => {
+      const statusBadge = getStatusBadge(item.status, item.daysRemaining);
+      const deptCol = showDept ? `<td>${escHtml(item.department)}</td>` : '';
+
+      return `
+        <tr class="return-row-${item.status}">
+          <td>${escHtml(item.name)}</td>
+          ${deptCol}
+          <td>${item.quantity}</td>
+          <td>${formatDollar(item.unitPrice)}</td>
+          <td>${formatDollar(item.refundEstimate)}</td>
+          <td>${formatDate(item.purchaseDate)}</td>
+          <td>${item.daysSincePurchase}d ago</td>
+          <td>${statusBadge}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const deptHeader = showDept ? '<th>Category</th>' : '';
+
+    return `
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            ${deptHeader}
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Est. Refund</th>
+            <th>Purchased</th>
+            <th>Age</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  function getStatusBadge(status, daysRemaining) {
+    switch (status) {
+      case 'urgent':
+        return `<span class="badge badge-urgent">${daysRemaining}d left</span>`;
+      case 'limited':
+        return `<span class="badge badge-limited">${daysRemaining}d left</span>`;
+      case 'expired':
+        return '<span class="badge badge-expired">Expired</span>';
+      case 'anytime':
+      default:
+        return '<span class="badge badge-anytime">Anytime</span>';
+    }
   }
 
   /* ---- UI Helpers ---- */

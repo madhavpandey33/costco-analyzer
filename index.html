@@ -108,6 +108,7 @@
           <button class="tab-btn" data-tab="tab-items">Item Analysis</button>
           <button class="tab-btn" data-tab="tab-returns">Returns</button>
           <button class="tab-btn" data-tab="tab-savings">Savings &amp; Optimization</button>
+          <button class="tab-btn" data-tab="tab-potential-returns">Potential Returns</button>
         </nav>
 
         <!-- Tab 1: Spending Overview -->
@@ -199,6 +200,62 @@
             <div class="insights-container">
               <h3>Spending Optimization Insights</h3>
               <div id="insights-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Potential Returns -->
+        <div class="tab-panel" id="tab-potential-returns">
+          <div class="potential-returns-summary">
+            <div class="card">
+              <header>Potential Refund</header>
+              <div class="card-value" id="stat-potential-refund">--</div>
+              <footer>Returnable items value</footer>
+            </div>
+            <div class="card">
+              <header>Returnable Items</header>
+              <div class="card-value" id="stat-returnable-items">--</div>
+              <footer>Across all categories</footer>
+            </div>
+            <div class="card">
+              <header>Expiring Soon</header>
+              <div class="card-value urgent-value" id="stat-urgent-items">--</div>
+              <footer>90-day window closing</footer>
+            </div>
+          </div>
+
+          <div id="potential-returns-urgent" class="chart-row" hidden>
+            <div class="table-container urgent-section">
+              <h3>Act Now &mdash; 90-Day Return Window Closing</h3>
+              <p class="section-hint">Electronics and computers must be returned within 90 days of purchase.</p>
+              <div class="table-scroll" id="table-urgent-returns"></div>
+            </div>
+          </div>
+
+          <div id="potential-returns-categories"></div>
+
+          <div id="potential-returns-expired" class="chart-row" hidden>
+            <div class="table-container expired-section">
+              <h3>Past 90-Day Window</h3>
+              <p class="section-hint">These electronics/tech items are past the 90-day return window.</p>
+              <div class="table-scroll" id="table-expired-returns"></div>
+            </div>
+          </div>
+
+          <div class="chart-row">
+            <div class="insights-container">
+              <h3>Costco Return Policy Reference</h3>
+              <div id="return-policy-info">
+                <div role="alert" data-variant="success" class="insight-card">
+                  <strong>Most Items</strong> &mdash; Costco accepts returns at any time with no time limit on most merchandise. Simply bring the item and your membership card.
+                </div>
+                <div role="alert" data-variant="warning" class="insight-card">
+                  <strong>Electronics (90 Days)</strong> &mdash; TVs, computers, tablets, cameras, drones, and major electronics must be returned within 90 days of purchase.
+                </div>
+                <div role="alert" class="insight-card">
+                  <strong>Apparel &amp; Shoes</strong> &mdash; Clothing, shoes, and accessories can be returned anytime. Costco is known for generous apparel returns.
+                </div>
+              </div>
             </div>
           </div>
         </div>

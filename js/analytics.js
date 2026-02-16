@@ -55,6 +55,7 @@ const CostcoAnalytics = (() => {
       savingsBreakdown: computeSavingsBreakdown(rows),
       monthlySavings: computeMonthlySavings(rows),
       topDiscounts: computeTopDiscounts(rows),
+      potentialReturns: computePotentialReturns(rows),
       insights: generateInsights(rows, purchases, returns)
     };
   }
@@ -373,6 +374,143 @@ const CostcoAnalytics = (() => {
     });
 
     return Object.values(map).sort((a, b) => b.discountPct - a.discountPct);
+  }
+
+  /* ---- Potential Returns ---- */
+
+  // Departments where items are typically returnable (non-consumable)
+  const RETURNABLE_DEPTS = {
+    '22': { label: 'Tires & Auto', policy: 'standard' },
+    '23': { label: 'Electronics & Batteries', policy: '90-day' },
+    '24': { label: 'Computers & Tech', policy: '90-day' },
+    '26': { label: 'Luggage & Travel', policy: 'standard' },
+    '28': { label: 'Toys & Seasonal', policy: 'standard' },
+    '31': { label: 'Apparel & Shoes', policy: 'standard' },
+    '32': { label: 'Home & Kitchen', policy: 'standard' },
+    '33': { label: 'Small Appliances', policy: 'standard' },
+    '38': { label: 'Furniture & Lighting', policy: 'standard' },
+    '39': { label: 'Baby Apparel', policy: 'standard' }
+  };
+
+  function computePotentialReturns(rows) {
+    const today = new Date();
+    const purchases = rows.filter(r => r.quantity > 0);
+    const returns = rows.filter(r => r.quantity < 0);
+
+    // Build a set of returned item SKUs with their returned quantities
+    const returnedMap = {};
+    returns.forEach(r => {
+      const key = r.item_sku || r.item_name;
+      returnedMap[key] = (returnedMap[key] || 0) + Math.abs(r.quantity);
+    });
+
+    // Track purchased quantities per SKU to compute net unreturned
+    const purchasedMap = {};
+    purchases.forEach(r => {
+      const key = r.item_sku || r.item_name;
+      if (!purchasedMap[key]) {
+        purchasedMap[key] = {
+          sku: r.item_sku,
+          name: r.item_actual_name,
+          department_id: r.department_id,
+          totalQty: 0,
+          unitPrice: r.unit_price,
+          totalSpent: 0,
+          purchaseDate: r.transaction_date,
+          image: r.full_item_image || ''
+        };
+      }
+      purchasedMap[key].totalQty += Math.abs(r.quantity);
+      purchasedMap[key].totalSpent += r.line_total;
+      // Keep the most recent purchase date
+      if (r.transaction_date > purchasedMap[key].purchaseDate) {
+        purchasedMap[key].purchaseDate = r.transaction_date;
+        purchasedMap[key].unitPrice = r.unit_price;
+      }
+    });
+
+    const results = [];
+    const categories = {};
+
+    Object.entries(purchasedMap).forEach(([key, item]) => {
+      const deptInfo = RETURNABLE_DEPTS[item.department_id];
+      if (!deptInfo) return; // Not a returnable category
+
+      const returnedQty = returnedMap[key] || 0;
+      const netQty = item.totalQty - returnedQty;
+      if (netQty <= 0) return; // Already fully returned
+
+      const daysSincePurchase = Math.floor(
+        (today - item.purchaseDate) / (1000 * 60 * 60 * 24)
+      );
+
+      const is90Day = deptInfo.policy === '90-day';
+      const daysRemaining = is90Day ? 90 - daysSincePurchase : null;
+      const isExpired = is90Day && daysRemaining <= 0;
+
+      let status;
+      if (isExpired) {
+        status = 'expired';
+      } else if (is90Day && daysRemaining <= 14) {
+        status = 'urgent';
+      } else if (is90Day) {
+        status = 'limited';
+      } else {
+        status = 'anytime';
+      }
+
+      const entry = {
+        sku: item.sku,
+        name: item.name,
+        department: deptInfo.label,
+        departmentId: item.department_id,
+        quantity: netQty,
+        unitPrice: item.unitPrice,
+        refundEstimate: round2(netQty * item.unitPrice),
+        purchaseDate: item.purchaseDate,
+        daysSincePurchase,
+        policy: is90Day ? '90-Day Return' : 'Anytime Return',
+        daysRemaining,
+        status,
+        image: item.image
+      };
+
+      results.push(entry);
+
+      // Group by category
+      const cat = deptInfo.label;
+      if (!categories[cat]) {
+        categories[cat] = { items: [], totalRefund: 0 };
+      }
+      categories[cat].items.push(entry);
+      categories[cat].totalRefund += entry.refundEstimate;
+    });
+
+    // Sort: urgent first, then by refund amount descending
+    const statusOrder = { urgent: 0, limited: 1, anytime: 2, expired: 3 };
+    results.sort((a, b) => {
+      const sDiff = statusOrder[a.status] - statusOrder[b.status];
+      if (sDiff !== 0) return sDiff;
+      return b.refundEstimate - a.refundEstimate;
+    });
+
+    const totalPotentialRefund = results
+      .filter(r => r.status !== 'expired')
+      .reduce((s, r) => s + r.refundEstimate, 0);
+
+    const urgentItems = results.filter(r => r.status === 'urgent');
+    const expiredItems = results.filter(r => r.status === 'expired');
+    const returnableItems = results.filter(r => r.status !== 'expired');
+
+    return {
+      all: results,
+      returnable: returnableItems,
+      urgent: urgentItems,
+      expired: expiredItems,
+      categories,
+      totalPotentialRefund: round2(totalPotentialRefund),
+      totalReturnableItems: returnableItems.reduce((s, r) => s + r.quantity, 0)
+    };
   }
 
   /* ---- Insights ---- */
